@@ -1,0 +1,14 @@
+cmake_minimum_required (VERSION 3.1)
+project (primes)
+
+set (CMAKE_CXX_STANDARD 11)
+
+if(UNIX)
+    add_compile_options("-march=native" "-Wall")
+elseif(WIN32)
+    add_compile_options("/Ot" "/W4")
+endif()
+
+add_executable(naive naive.c)
+add_executable(sieve sieve.cpp Bitset.h)
+add_executable(segmented segmented.cpp Bitset.h)
