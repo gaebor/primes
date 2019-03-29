@@ -10,7 +10,7 @@
 #include "Sieve.h"
 
 template<class bitset>
-void sieve(size_t n, const std::string& savefilename = "")
+void calculate_sieve(size_t n, const std::string& savefilename = "")
 {
     if (savefilename.empty())
     {  // write to stdout
@@ -30,7 +30,7 @@ int main(int argc, const char* argv[])
 {
     bool batched = false;
     std::string outfilename = "";
-    auto sieve_function = sieve<Bitset<std::uint32_t>>;
+    auto main_function = calculate_sieve<Bitset<std::uint32_t>>;
     size_t wordsize = 32;
     size_t n = 1 << 10;
 
@@ -83,24 +83,24 @@ int main(int argc, const char* argv[])
     {
         switch (wordsize)
         {
-        case 8:  sieve_function = sieve<BitsetBlocked<std::uint8_t>>; break;
-        case 16: sieve_function = sieve<BitsetBlocked<std::uint16_t>>; break;
-        case 32: sieve_function = sieve<BitsetBlocked<std::uint32_t>>; break;
-        case 64: sieve_function = sieve<BitsetBlocked<std::uint64_t>>; break;
+        case 8:  main_function = calculate_sieve<BitsetBlocked<std::uint8_t>>; break;
+        case 16: main_function = calculate_sieve<BitsetBlocked<std::uint16_t>>; break;
+        case 32: main_function = calculate_sieve<BitsetBlocked<std::uint32_t>>; break;
+        case 64: main_function = calculate_sieve<BitsetBlocked<std::uint64_t>>; break;
         };
     }
     else
     {
         switch (wordsize)
         {
-        case 8:  sieve_function = sieve<Bitset<std::uint8_t>>; break;
-        case 16: sieve_function = sieve<Bitset<std::uint16_t>>; break;
-        case 32: sieve_function = sieve<Bitset<std::uint32_t>>; break;
-        case 64: sieve_function = sieve<Bitset<std::uint64_t>>; break;
+        case 8:  main_function = calculate_sieve<Bitset<std::uint8_t>>; break;
+        case 16: main_function = calculate_sieve<Bitset<std::uint16_t>>; break;
+        case 32: main_function = calculate_sieve<Bitset<std::uint32_t>>; break;
+        case 64: main_function = calculate_sieve<Bitset<std::uint64_t>>; break;
         };
     }
     
-    sieve_function(n, outfilename);
+    main_function(n, outfilename);
 
 	return 0;
 }

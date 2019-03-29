@@ -10,6 +10,7 @@ public:
     Sieve() : table((size_t)1){}
     ~Sieve() {}
 
+    //! calculates the primes in [1, n]
     void calculate(size_t n, std::function<void(size_t)> printer = [](size_t) {})
     {
         table.resize(n);
