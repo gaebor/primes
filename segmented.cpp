@@ -37,11 +37,17 @@ bool segment(const size_t m, const size_t mm, const std::vector<size_t>& found_p
     return true;
 }
 
+template<size_t r, class Ty>
+constexpr Ty round(Ty x)
+{
+    return r * ((x + r - 1) / r);
+}
+
 template<class bitset>
 void calculate_sieve(size_t n, size_t delta = 0, const std::string& savefilename = "")
 {
     delta = std::max(size_t(std::ceil(std::sqrt(n))), delta);
-    //TODO what if delta is not a multiple of word_size!
+    delta = round<bitset::word_size, size_t>(delta);
 
     std::vector<size_t> found_primes;
     size_t m = 1;
@@ -70,9 +76,10 @@ void calculate_sieve(size_t n, size_t delta = 0, const std::string& savefilename
         }
     }
 
-    Sieve<bitset> table;
-    table.calculate(delta, [&found_primes](size_t x) {found_primes.push_back(x); });
-    printer(table.GetTable());
+    auto table = new Sieve<bitset>();
+    table->calculate(delta, [&found_primes](size_t x) {found_primes.push_back(x); });
+    printer(table->GetTable());
+    delete table;
 
     for (m = delta + 1; m < n; m += delta)
     {
@@ -82,6 +89,7 @@ void calculate_sieve(size_t n, size_t delta = 0, const std::string& savefilename
 
 int main(int argc, const char* argv[])
 {
+    const auto x = round<1024>(1025);
     bool batched = false;
     size_t delta = 0;
     std::string outfilename = "";

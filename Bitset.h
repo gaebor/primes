@@ -61,7 +61,7 @@ class Bitset
 {
     static_assert(std::is_unsigned<storage>::value, "Unsigned integral required!");
 public:
-    static const size_t word_size;
+    static const size_t word_size = sizeof(storage) * CHAR_BIT;
     typedef storage WordType;
     explicit Bitset(size_t n) : _array(nullptr)
     {
@@ -145,15 +145,13 @@ protected:
     WordType* _array;
 };
 
-template <class storage>
-const size_t Bitset<storage>::word_size = sizeof(storage) * CHAR_BIT;
-
 template<class Ty>
 class BitsetBlocked : public Bitset<Ty>
 {
+public:
     using Bitset<Ty>::word_size;
     using typename Bitset<Ty>::WordType;
-public:
+
     BitsetBlocked(){}
     explicit BitsetBlocked(size_t n) : Bitset<Ty>(n) {}
     void set_every(const size_t step, const size_t start = 0)
