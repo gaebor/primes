@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#include<iostream>
+#include <iostream>
 
 #include <string>
 #include <cinttypes>
@@ -12,16 +12,16 @@
 template<class bitset>
 void calculate_sieve(size_t n, const std::string& savefilename = "")
 {
+    bitset table(n);
     if (savefilename.empty())
     {  // write to stdout
-        Sieve<bitset> table;
-        table.calculate(n, [](size_t x) {printf("%zu\n", x); });
+        CalculateSieve(n, table, [](size_t x) {printf("%zu\n", x); });
     }
     else
     {
-        Sieve<bitset> table;
-        table.calculate(n);
-        if (!table.GetTable().WriteToFile(savefilename.c_str()))
+        // CalculateSieve(n, table); // try this 
+        CalculateSieve(n, table, [](size_t x){});
+        if (!table.WriteToFile(savefilename.c_str()))
             std::cerr << "error writing \"" << savefilename << "\"" << std::endl;
     }
 }

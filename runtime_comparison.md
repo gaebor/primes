@@ -29,13 +29,15 @@ Memory usage is about 3-5MiByte.
 The main advantage of the segmented sieve is that it uses *O(sqrt(n))* memory.
 In case of *n=1,073,741,824* this means that it even fits the cache.
 
-The best performance is achieved if the delta segment size is exactly the L2 cache.
-In my CPU it is 256KiByte, meaning that *delta* (`-d`) is `2^21`.
+The best performance is achieved if the delta segment size is just below the L2 cache size.
+In my CPU the L2 is 256KiByte, meaning that *delta* (`-d`) is `2^20` uses the cache efficiently.
 With this caching (and blocked bitset):
 
 | word size (bit) | blocked bitset |
 | --- | --- |
 | 8 | 14.57sec |
-| 16| 13.98sec |
-|32 | 13.24sec |
-|64 | 12.90sec |
+| 16| 13.69sec |
+|32 | 13.21sec |
+|64 | 12.85sec |
+
+As delta increases then the segmented algorithm becomes the standard sieve.

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <climits>
 #include <limits>
 #include <type_traits>
@@ -63,7 +65,7 @@ class Bitset
 public:
     static const size_t word_size = sizeof(storage) * CHAR_BIT;
     typedef storage WordType;
-    explicit Bitset(size_t n) : _array(nullptr)
+    explicit Bitset(size_t n) : _size(0), n_words(0), _array(nullptr)
     {
         resize(n);
     }
@@ -78,11 +80,14 @@ public:
     }
     void resize(size_t n)
     {
-        _size = n;
-        n_words = (n + word_size - 1) / word_size;
-        if (_array)
-            delete[] _array;
-        _array = new WordType[n_words];
+        if (_size != n)
+        {
+            _size = n;
+            n_words = (n + word_size - 1) / word_size;
+            if (_array)
+                delete[] _array;
+            _array = new WordType[n_words];
+        }
     }
     bool WriteToFile(const char* filename, bool append = false)const
     {

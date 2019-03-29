@@ -11,43 +11,18 @@
 
 #include "Sieve.h"
 
-//! calculates a list of primes in the interval p in [m, mm]
-template<class bitset>
-bool segment(const size_t m, const size_t mm, const std::vector<size_t>& found_primes,
-    std::function<void(const bitset&)> printer = [](const bitset&) {})
-{
-    //if (found_primes.empty() || found_primes.back()*found_primes.back() < mm)
-    //    return false;
-    //if (found_primes.front() != (size_t)2)
-    //    return false;
-
-    bitset table(mm - m + 1);
-    table.set_every(1);
-
-    for (auto p : found_primes)
-    {
-        if (p*p > mm)
-            break;
-        size_t start = m % p;
-        if (start != 0)
-            start = p - start;
-        table.reset_every(p, start);
-    }
-    printer(table);
-    return true;
-}
-
 template<size_t r, class Ty>
-constexpr Ty round(Ty x)
+constexpr Ty Round(Ty x)
 {
-    return r * ((x + r - 1) / r);
+    return ((x + r - 1) / r) * r;
 }
 
 template<class bitset>
 void calculate_sieve(size_t n, size_t delta = 0, const std::string& savefilename = "")
 {
     delta = std::max(size_t(std::ceil(std::sqrt(n))), delta);
-    delta = round<bitset::word_size, size_t>(delta);
+    delta = std::min(delta, n);
+    delta = Round<bitset::word_size>(delta);
 
     std::vector<size_t> found_primes;
     size_t m = 1;
@@ -76,20 +51,19 @@ void calculate_sieve(size_t n, size_t delta = 0, const std::string& savefilename
         }
     }
 
-    auto table = new Sieve<bitset>();
-    table->calculate(delta, [&found_primes](size_t x) {found_primes.push_back(x); });
-    printer(table->GetTable());
-    delete table;
+    bitset table(delta);
+    CalculateSieve(delta, table, [&found_primes](size_t x) {found_primes.push_back(x); });
+    printer(table);
 
     for (m = delta + 1; m < n; m += delta)
     {
-        segment(m, std::min(m + delta - 1, n), found_primes, printer);
+        CalculateSegment(m, std::min(m + delta - 1, n), found_primes, table);
+        printer(table);
     }
 }
 
 int main(int argc, const char* argv[])
 {
-    const auto x = round<1024>(1025);
     bool batched = false;
     size_t delta = 0;
     std::string outfilename = "";
