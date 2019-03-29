@@ -1,7 +1,11 @@
-#include<climits>
-#include<limits>
-#include<type_traits>
-#include<vector>
+#include <climits>
+#include <limits>
+#include <type_traits>
+#include <vector>
+#include <functional>
+#include <cstdio>
+
+#include "little_endian.h"
 
 template<class Ty, bool do_set>
 struct SetTraits
@@ -55,52 +59,73 @@ constexpr Type lcm(Type a, Type b)
 template <class storage = size_t>
 class Bitset
 {
-private:
-    static const size_t word_size;
+    static_assert(std::is_unsigned<storage>::value, "Unsigned integral required!");
 public:
+    static const size_t word_size;
     typedef storage WordType;
-    Bitset(const size_t n)
-    :   _size(n),
-        n_words((n + word_size - 1)/word_size),
-        _array(new storage[n_words])
+    explicit Bitset(size_t n) : _array(nullptr)
     {
-        static_assert(std::is_unsigned<storage>::value, "Unsigned integral required!");
+        resize(n);
     }
     ~Bitset()
     {
-        delete[] _array;
+        if (_array)
+            delete[] _array;
     }
-    const storage* GetContent()const
-    {
-        return _array;
-    }
-    size_t GetnumberOfWords()const
-    {
-        return n_words;
-    }
-    size_t GetSize()const
+    size_t size()const
     {
         return _size;
     }
+    void resize(size_t n)
+    {
+        _size = n;
+        n_words = (n + word_size - 1) / word_size;
+        if (_array)
+            delete[] _array;
+        _array = new WordType[n_words];
+    }
+    bool WriteToFile(const char* filename, bool append = false)const
+    {
+        const auto file = fopen(filename, append ? "ab" : "wb");
+        if (file)
+        {
+            WordType x;
+            auto ptr = _array;
+            const auto end = ptr + n_words;
+            for (; ptr != end; ++ptr)
+            {
+                x = ConvertToLittleEndian(*ptr);
+                if (1 != fwrite(&x, sizeof(WordType), 1, file))
+                {
+                    fclose(file);
+                    return false;
+                }
+            }
+            fclose(file);
+            return true;
+        }
+        else
+            return false;
+    }
     void set(const size_t i)
     {
-        set_one<SetTraits<storage, true>>(i);
+        set_one<SetTraits<WordType, true>>(i);
     }
     void reset(const size_t i)
     {
-        set_one<SetTraits<storage, false>>(i);
+        set_one<SetTraits<WordType, false>>(i);
     }
     void set_every(const size_t step, const size_t start = 0)
     {
-        every<SetTraits<storage, true>>(step, start);
+        every<SetTraits<WordType, true>>(step, start);
     }
     void reset_every(const size_t step, const size_t start = 0)
     {
-        every<SetTraits<storage, false>>(step, start);
+        every<SetTraits<WordType, false>>(step, start);
     }
     bool operator[](size_t i)const
     {
-        return (_array[i / word_size] & (((storage)1) << (i % word_size))) != 0;
+        return (_array[i / word_size] & (((WordType)1) << (i % word_size))) != 0;
     }
 private:
     template<typename traits>
@@ -108,20 +133,52 @@ private:
     {
         traits::one_bit(_array[i / word_size], i % word_size);
     }
+protected:
+    template<typename traits>
+    void every(const size_t step, size_t start = 0)
+    {
+        for (size_t i = start; i < _size; i += step)
+            traits::one_bit(_array[i / word_size], i % word_size);
+    }
+    size_t _size;
+    size_t n_words;
+    WordType* _array;
+};
+
+template <class storage>
+const size_t Bitset<storage>::word_size = sizeof(storage) * CHAR_BIT;
+
+template<class Ty>
+class BitsetBlocked : public Bitset<Ty>
+{
+    using Bitset<Ty>::word_size;
+    using typename Bitset<Ty>::WordType;
+public:
+    BitsetBlocked(){}
+    explicit BitsetBlocked(size_t n) : Bitset<Ty>(n) {}
+    void set_every(const size_t step, const size_t start = 0)
+    {
+        every<SetTraits<WordType, true>>(step, start);
+    }
+    void reset_every(const size_t step, const size_t start = 0)
+    {
+        every<SetTraits<WordType, false>>(step, start);
+    }
+protected:
     template<typename traits>
     void every(const size_t step, size_t start = 0)
     {
         if (step <= word_size)
         {   // trick
-            storage* place = _array + start / word_size;
-            storage* const end_place = _array + n_words;
-            if (start < _size && (start % word_size) >= step)
+            WordType* place = this->_array + start / word_size;
+            WordType* const end_place = this->_array + this->n_words;
+            if (start < this->_size && (start % word_size) >= step)
             {   // handle the first word
                 for (size_t k = start % word_size; k < word_size; k += step, start += step)
                     traits::one_bit(*place, k);
                 place++;
             }
-            std::vector<storage> masks(step / gcd(word_size, step), traits::default_mask);
+            std::vector<WordType> masks(step / gcd(word_size, step), traits::default_mask);
             for (size_t i = start % word_size; i < lcm(word_size, step); i += step)
                 traits::one_bit(masks[i / word_size], i % word_size);
 
@@ -135,15 +192,8 @@ private:
         }
         else
         {   // vanilla
-            for (size_t i = start; i < _size; i += step)
-                traits::one_bit(_array[i / word_size], i % word_size);
+            for (size_t i = start; i < this->_size; i += step)
+                traits::one_bit(this->_array[i / word_size], i % word_size);
         }
     }
-private:
-    const size_t _size;
-    const size_t n_words;
-    storage* _array;
 };
-
-template <class storage>
-const size_t Bitset<storage>::word_size = sizeof(storage) * CHAR_BIT;

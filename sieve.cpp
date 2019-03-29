@@ -7,52 +7,33 @@
 #include <string>
 #include <cinttypes>
 
-#include "Bitset.h"
+#include "Sieve.h"
 
-template<class Storage>
-void sieve(size_t n, const std::string& savefilename)
+template<class bitset>
+void sieve(size_t n, const std::string& savefilename = "")
 {
-    Bitset<Storage> table(n);
-    table.set_every(1);
-
-    size_t pm1 = 0; // the zeroth index is '1', the 'n-1'-th index is 'n'
-    table.reset(pm1); // one is not a prime
-    while (++pm1 < n)
-    {
-        while (!table[pm1])
-        {
-            ++pm1;
-            if (pm1 == n)
-                goto finished;
-        }
-        const size_t p = pm1 + 1;
-        printf("%zu\n", p);
-        table.reset_every(p, p*p - 1);
+    if (savefilename.empty())
+    {  // write to stdout
+        Sieve<bitset> table;
+        table.calculate(n, [](size_t x) {printf("%zu\n", x); });
     }
-finished:
-    if (!savefilename.empty())
+    else
     {
-        const auto file = fopen(savefilename.c_str(), "wb");
-        if (file)
-        {
-            auto ptr = table.GetContent();
-            const auto end = ptr + table.GetnumberOfWords();
-            for (; ptr != end; ++ptr)
-                if (1 != fwrite(ptr, sizeof(Storage), 1, file))
-                    break;
-            fclose(file);
-        }
-        else
-            std::cerr << "error opening: " << savefilename << std::endl;
+        Sieve<bitset> table;
+        table.calculate(n);
+        if (!table.GetTable().WriteToFile(savefilename.c_str()))
+            std::cerr << "error writing \"" << savefilename << "\"" << std::endl;
     }
 }
 
 int main(int argc, const char* argv[])
 {
+    bool batched = false;
     std::string outfilename = "";
-    size_t storage_size = 32;
-
+    auto sieve_function = sieve<Bitset<std::uint32_t>>;
+    size_t wordsize = 32;
     size_t n = 1 << 10;
+
     for (++argv; *argv; ++argv)
     {
         if (strcmp("-h", *argv) == 0 || strcmp("--help", *argv) == 0)
@@ -69,16 +50,23 @@ int main(int argc, const char* argv[])
         {
             outfilename = *++argv;
         }
-        else if ((strcmp("-s", *argv) == 0 || strcmp("--storage", *argv) == 0 || 
+        else if (strcmp("-b", *argv) == 0 || strcmp("--blocked", *argv) == 0 ||
+            strcmp("-m", *argv) == 0 || strcmp("--masked", *argv) == 0 ||
+            strcmp("--batched", *argv) == 0)
+        {
+            batched = true;
+        }
+        else if ((strcmp("-s", *argv) == 0 || strcmp("--storage", *argv) == 0 ||
             strcmp("-w", *argv) == 0 || strcmp("--word", *argv) == 0) && *(argv + 1))
         {
             auto w = atoi(*++argv);
             switch (w)
             {
-            case  8: storage_size =  8; break;
-            case 16: storage_size = 16; break;
-            case 32: storage_size = 32; break;
-            case 64: storage_size = 64; break;
+            case 8:
+            case 16:
+            case 32:
+            case 64:
+                wordsize = w;
                 break;
             default:
                 fprintf(stderr, "Invalid word size: \"%s\"\n", *argv);
@@ -91,13 +79,28 @@ int main(int argc, const char* argv[])
         }
     }
 
-    switch (storage_size)
+    if (batched)
     {
-    case 8: sieve<std::uint8_t>(n, outfilename); break;
-    case 16: sieve<std::uint16_t>(n, outfilename); break;
-    case 32: sieve<std::uint32_t>(n, outfilename); break;
-    case 64: sieve<std::uint64_t>(n, outfilename); break;
+        switch (wordsize)
+        {
+        case 8:  sieve_function = sieve<BitsetBlocked<std::uint8_t>>; break;
+        case 16: sieve_function = sieve<BitsetBlocked<std::uint16_t>>; break;
+        case 32: sieve_function = sieve<BitsetBlocked<std::uint32_t>>; break;
+        case 64: sieve_function = sieve<BitsetBlocked<std::uint64_t>>; break;
+        };
     }
+    else
+    {
+        switch (wordsize)
+        {
+        case 8:  sieve_function = sieve<Bitset<std::uint8_t>>; break;
+        case 16: sieve_function = sieve<Bitset<std::uint16_t>>; break;
+        case 32: sieve_function = sieve<Bitset<std::uint32_t>>; break;
+        case 64: sieve_function = sieve<Bitset<std::uint64_t>>; break;
+        };
+    }
+    
+    sieve_function(n, outfilename);
 
 	return 0;
 }
