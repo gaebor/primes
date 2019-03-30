@@ -1,13 +1,10 @@
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-
 #include <iostream>
 
 #include <string>
 #include <cinttypes>
 
 #include "Sieve.h"
+#include "ArgParser.h"
 
 template<class bitset>
 void calculate_sieve(size_t n, const std::string& savefilename = "")
@@ -34,50 +31,20 @@ int main(int argc, const char* argv[])
     size_t wordsize = 32;
     size_t n = 1 << 10;
 
-    for (++argv; *argv; ++argv)
-    {
-        if (strcmp("-h", *argv) == 0 || strcmp("--help", *argv) == 0)
-        {
-            printf("Prime counting application using Sieve of Eratosthenes\n"
-                "contact: borbely@math.bme.hu\n");
-            return 0;
-        }
-        else if (strcmp("-n", *argv) == 0 && *(argv + 1) && atoll(*(argv + 1)) > 0)
-        {
-            n = atoll(*++argv);
-        }
-        else if ((strcmp("-o", *argv) == 0 || strcmp("--output", *argv) == 0) && *(argv + 1))
-        {
-            outfilename = *++argv;
-        }
-        else if (strcmp("-b", *argv) == 0 || strcmp("--blocked", *argv) == 0 ||
-            strcmp("-m", *argv) == 0 || strcmp("--masked", *argv) == 0 ||
-            strcmp("--batched", *argv) == 0)
-        {
-            batched = true;
-        }
-        else if ((strcmp("-s", *argv) == 0 || strcmp("--storage", *argv) == 0 ||
-            strcmp("-w", *argv) == 0 || strcmp("--word", *argv) == 0) && *(argv + 1))
-        {
-            auto w = atoi(*++argv);
-            switch (w)
-            {
-            case 8:
-            case 16:
-            case 32:
-            case 64:
-                wordsize = w;
-                break;
-            default:
-                fprintf(stderr, "Invalid word size: \"%s\"\n", *argv);
-                break;
-            }
-        }
-        else
-        {
-            fprintf(stderr, "Unknown argument: \"%s\"\n", *argv);
-        }
-    }
+    arg::Parser parser("Prime counting application using Sieve of Eratosthenes\n"
+        "Author: Gabor Borbely, Contact: borbely@math.bme.hu");
+
+    parser.AddArg(n, { "-n" }, "checks primes in the interval [1, n]");
+    parser.AddArg(outfilename, { "-o", "--output" },
+        "binary output filename, if empty then print text to stdout", "string");
+    parser.AddArg(batched, { "-b", "--blocked", "--batched", "-m", "--masked" },
+        "a bit more clever way of computing the sieve");
+    parser.AddFlag(batched, { "-B", "--no-blocked", "--no-batched", "-M", "--no-masked" },
+        "resets blocked flag to vanilla computing", true);
+    parser.AddArg<size_t>(wordsize, { "-w", "--word", "-s", "--storage" },
+        "internal representation size in bits", "", { 8,16,32,64 });
+
+    parser.Do(argc, argv);
 
     if (batched)
     {
