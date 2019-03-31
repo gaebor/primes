@@ -89,9 +89,8 @@ public:
             _array = new WordType[n_words];
         }
     }
-    bool WriteToFile(const char* filename, bool append = false)const
+    bool WriteToFile(FILE* file)const
     {
-        const auto file = fopen(filename, append ? "ab" : "wb");
         if (file)
         {
             WordType x;
@@ -102,11 +101,9 @@ public:
                 x = ConvertToLittleEndian(*ptr);
                 if (1 != fwrite(&x, sizeof(WordType), 1, file))
                 {
-                    fclose(file);
                     return false;
                 }
             }
-            fclose(file);
             return true;
         }
         else

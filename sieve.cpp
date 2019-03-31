@@ -16,9 +16,11 @@ void calculate_sieve(size_t n, const std::string& savefilename = "")
     }
     else
     {
+        FILE* outfile = fopen(savefilename.c_str(), "wb");       
+
         // CalculateSieve(n, table); // try this 
         CalculateSieve(n, table, [](size_t x){});
-        if (!table.WriteToFile(savefilename.c_str()))
+        if (!outfile || !table.WriteToFile(outfile))
             std::cerr << "error writing \"" << savefilename << "\"" << std::endl;
     }
 }
