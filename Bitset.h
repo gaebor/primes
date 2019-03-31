@@ -145,6 +145,9 @@ protected:
     size_t _size;
     size_t n_words;
     WordType* _array;
+private:
+    Bitset(const Bitset& other){}
+    Bitset(Bitset&& other){}
 };
 
 template<class Ty>
@@ -196,4 +199,7 @@ protected:
                 traits::one_bit(this->_array[i / word_size], i % word_size);
         }
     }
+private:
+    BitsetBlocked(const BitsetBlocked& other) {}
+    BitsetBlocked(BitsetBlocked&& other) {}
 };

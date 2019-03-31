@@ -27,16 +27,11 @@ void CalculateSieve(size_t n, bitset& table,
     }
 }
 
-//! calculates a list of primes in the interval p in [m, mm]
+//! calculates a list of primes in the interval [m, mm]
 template<class bitset>
 void CalculateSegment(const size_t m, const size_t mm, const std::vector<size_t>& found_primes,
     bitset& table)
 {
-    //if (found_primes.empty() || found_primes.back()*found_primes.back() < mm)
-    //    return false;
-    //if (found_primes.front() != (size_t)2)
-    //    return false;
-
     table.resize(mm - m + 1);
     table.set_every(1);
 

@@ -9,6 +9,7 @@
 #include <functional>
 #include <iostream>
 #include <thread>
+#include <list>
 
 #include "Sieve.h"
 #include "ArgParser.h"
@@ -32,18 +33,17 @@ void calculate_sieve(size_t n,
         delta2 = delta;
 
     std::vector<size_t> found_primes;
-    size_t m = 1;
 
     FILE* output = nullptr;
-    std::function<void(const bitset& t)> printer;
+    std::function<void(const bitset& t, size_t)> printer;
 
     if (savefilename.empty())
     {   // output to stdout
-        printer = [&m](const bitset& t)
+        printer = [](const bitset& t, size_t offset)
         {
             for (size_t i = 0; i < t.size(); ++i)
                 if (t[i])
-                    printf("%zu\n", m + i);
+                    printf("%zu\n", offset + i);
         };
     }
     else
@@ -51,7 +51,7 @@ void calculate_sieve(size_t n,
         output = fopen(savefilename.c_str(), "wb");
         if (output)
         {
-            printer = [&output](const bitset& t)
+            printer = [&output](const bitset& t, size_t)
             {
                 t.WriteToFile(output);
             };
@@ -62,42 +62,48 @@ void calculate_sieve(size_t n,
         }
     }
 
-    std::vector<bitset> tables; tables.reserve(thread);
+    std::list<bitset> tables;
     tables.emplace_back(delta);
     found_primes.reserve(size_t(delta / std::log(delta)));
 
-    CalculateSieve(delta, tables[0] , [&found_primes](size_t x) {found_primes.push_back(x); });
-    printer(tables[0]);
+    CalculateSieve(delta, tables.front() , [&found_primes](size_t x) {found_primes.push_back(x); });
+    printer(tables.front(), 1);
 
     for (size_t i = 1; i < thread; ++i)
         tables.emplace_back(delta2);
     
-    // std::vector<std::thread> threads(thread);
+    std::vector<std::thread> threads(thread);
 
-    for (m = delta + 1; m < n; m += delta2)
-    {
-        CalculateSegment(m, std::min(m + delta2 - 1, n), found_primes, tables[0]);
-        printer(tables[0]);
-    }
-
-    //m = delta + 1;
-    //while (m < n)
+    //for (m = delta + 1; m < n; m += delta2)
     //{
-    //    for (size_t t = 0; t < thread; ++t)
-    //    {
-    //        CalculateSegment(m, std::min(m + delta2 - 1, n), found_primes, table);
-    //        
-    //    }
-    //    for (auto& t : threads)
-    //    {
-    //        if (t.joinable())
-    //        {
-    //            t.join()
-    //        }
-    //    }
-    //    for (size_t t = 0; t < thread; ++t)
-    //        printer(table);
+    //    CalculateSegment(m, std::min(m + delta2 - 1, n), found_primes, tables[0]);
+    //    printer(tables[0]);
     //}
+
+    size_t m = delta + 1;
+    while (m < n)
+    {
+        auto table_it = tables.begin();
+        for (size_t t = 0; t < thread; ++t, ++table_it)
+        {
+            if (m < n)
+                threads[t] = std::thread([&found_primes](size_t a, size_t b, bitset* table)
+            {
+                CalculateSegment<bitset>(a, b, found_primes, *table);
+            }, m + t * delta2, std::min(m + (t + 1) * delta2 - 1, n), &*table_it);
+            else
+                break;
+        }
+        table_it = tables.begin();
+        for (size_t t = 0; t < thread; ++t, m += delta2)
+        {
+            if (threads[t].joinable())
+            {
+                threads[t].join();
+                printer(*table_it++, m);
+            }
+        }
+    }
     if (output)
         fclose(output);
 }
