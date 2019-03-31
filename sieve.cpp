@@ -27,11 +27,11 @@ void calculate_sieve(size_t n, const std::string& savefilename = "")
 
 int main(int argc, const char* argv[])
 {
-    bool batched = false;
+    bool batched = true;
     std::string outfilename = "";
-    auto main_function = calculate_sieve<Bitset<std::uint32_t>>;
-    size_t wordsize = 32;
+    size_t wordsize = CHAR_BIT * sizeof(void*);
     size_t n = 1 << 10;
+    auto main_function = calculate_sieve<Bitset<std::uint32_t>>;
 
     arg::Parser parser("Prime counting application using Sieve of Eratosthenes\n"
         "Author: Gabor Borbely, Contact: borbely@math.bme.hu");
@@ -39,10 +39,10 @@ int main(int argc, const char* argv[])
     parser.AddArg(n, { "-n" }, "checks primes in the interval [1, n]");
     parser.AddArg(outfilename, { "-o", "--output" },
         "binary output filename, if empty then print text to stdout", "string");
-    parser.AddArg(batched, { "-b", "--blocked", "--batched", "-m", "--masked" },
+    parser.AddFlag(batched, { "-b", "--blocked", "--batched", "-m", "--masked" },
         "a bit more clever way of computing the sieve");
     parser.AddFlag(batched, { "-B", "--no-blocked", "--no-batched", "-M", "--no-masked" },
-        "resets blocked flag to vanilla computing", true);
+        "resets blocked flag to vanilla computing", false);
     parser.AddArg<size_t>(wordsize, { "-w", "--word", "-s", "--storage" },
         "internal representation size in bits", "", { 8,16,32,64 });
 

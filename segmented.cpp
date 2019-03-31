@@ -104,14 +104,14 @@ void calculate_sieve(size_t n,
 
 int main(int argc, const char* argv[])
 {
-    bool batched = false;
+    bool batched = true;
+    std::string outfilename = "";
+    size_t wordsize = CHAR_BIT * sizeof(void*);
+    size_t n = 1 << 10;
+    auto main_function = calculate_sieve<Bitset<std::uint32_t>>;
     size_t delta = 0;
     size_t delta2 = 0;
     size_t thread = 1;
-    std::string outfilename = "";
-    auto main_function = calculate_sieve<Bitset<std::uint32_t>>;
-    size_t wordsize = 32;
-    size_t n = 1 << 10;
 
     arg::Parser parser("Prime counting application using segmented sieve of Jonathan Sorenson\n"
         "Author: Gabor Borbely, Contact: borbely@math.bme.hu");
@@ -127,7 +127,7 @@ int main(int argc, const char* argv[])
     parser.AddFlag(batched, { "-b", "--blocked", "--batched", "-m", "--masked" }, 
         "a bit more clever way of computing the sieve");
     parser.AddFlag(batched, { "-B", "--no-blocked", "--no-batched", "-M", "--no-masked" },
-        "resets blocked flag to vanilla computing", true);
+        "resets blocked flag to vanilla computing", false);
     parser.AddArg<size_t>(wordsize, { "-w", "--word", "-s", "--storage" },
         "internal representation size in bits", "", {8,16,32,64});
     parser.AddArg(delta2, { "-d2", "--delta2" });

@@ -57,6 +57,14 @@ namespace arg
                 _meta(meta.empty() ? typeid(_val).name() : meta),
                 _choices(choices.begin(), choices.end())
         {
+            if (!_choices.empty() && _choices.find(_val) == _choices.end())
+            {
+                std::cerr << "At option";
+                for (auto o : options)
+                    std::cerr << " " << o;
+                std::cerr << " the default value \"" << _val << "\" is not listed in the choices!" << std::endl;
+                exit(1);
+            }
         }
         ~TypedArgument() {}
         virtual void WriteShort(std::ostream& os)const
@@ -110,8 +118,8 @@ namespace arg
     {
         SetFlag(bool& def_val,
             const std::initializer_list<const char*>& args = {},
-            const std::string& info = "", bool reset=false, const std::string& meta = "")
-            : Argument(args, info), _val(def_val), _reset(reset),
+            const std::string& info = "", bool set_to=true, const std::string& meta = "")
+            : Argument(args, info), _val(def_val), _set_to(set_to),
             _meta(meta.empty() ? typeid(_val).name() : meta)
         {
         }
@@ -139,7 +147,7 @@ namespace arg
             {
                 if (Match(argv[0]))
                 {
-                    _val = _reset ? false : true;
+                    _val = _set_to;
                     return 1;
                 }
             }
@@ -147,7 +155,7 @@ namespace arg
         }
     protected:
         bool& _val;
-        bool _reset;
+        bool _set_to;
         const std::string _meta;
     };
 
@@ -225,9 +233,9 @@ namespace arg
         }
         void AddFlag(bool& value,
             const std::initializer_list<const char*>& args = {},
-            const std::string& info = "", bool reset=false, const std::string& meta = "")
+            const std::string& info = "", bool set_to=true, const std::string& meta = "")
         {
-            arguments.emplace_back(new SetFlag(value, args, info, reset, meta));
+            arguments.emplace_back(new SetFlag(value, args, info, set_to, meta));
 
             for (const auto& option : arguments.back()->options)
                 if (!_options.insert(option).second)
