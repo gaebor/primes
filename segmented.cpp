@@ -10,9 +10,11 @@
 #include <iostream>
 #include <thread>
 #include <list>
+#include <vector>
 
 #include "Sieve.h"
 #include "ArgParser.h"
+#include "Event.h"
 
 template<size_t r, class Ty>
 constexpr Ty Round(Ty x)
@@ -25,9 +27,11 @@ void calculate_sieve(size_t n,
     size_t delta0 = 0, size_t delta = 0, size_t thread = 1,
     const std::string& savefilename = "")
 {
-    delta0 = Round<bitset::word_size>(std::min<size_t>(std::max<size_t>(std::ceil(std::sqrt(n)), delta0), n));
-    delta = Round<bitset::word_size>(std::min<size_t>(std::max<size_t>(std::ceil(std::sqrt(n)), delta), n));
-
+    {
+        const size_t sqrtn(std::ceil(std::sqrt(n)));
+        delta0 = Round<bitset::word_size>(std::min(std::max(sqrtn, delta0), n));
+        delta = Round<bitset::word_size>(std::min(std::max(sqrtn, delta), n));
+    }
     std::vector<size_t> found_primes;
 
     FILE* output = nullptr;
@@ -65,33 +69,79 @@ void calculate_sieve(size_t n,
     CalculateSieve(delta0, tables.front() , [&found_primes](size_t x) {found_primes.push_back(x); });
     printer(tables.front(), 1);
 
-    for (size_t i = 1; i < thread; ++i)
-        tables.emplace_back(delta);
-    
-    std::vector<std::thread> threads(thread);
-
-    size_t m = delta0 + 1;
-    while (m < n)
+    if (thread == 0)
     {
+        for (size_t m = delta0 + 1; m < n; m += delta)
+        {
+            CalculateSegment<bitset>(m, std::min(m + delta - 1, n), found_primes, tables.front());
+            printer(tables.front(), m);
+        }
+    }
+    else
+    {
+        for (size_t i = 1; i < thread; ++i)
+            tables.emplace_back(delta);
+
+        struct ThreadArg
+        {
+            ThreadArg() : m(0), mm(0), table(nullptr) {}
+            size_t m, mm;
+            bitset* table;
+            Event<> compute, done;
+            std::thread _thread;
+        };
+        std::vector<ThreadArg> threads(thread);
+        bool run = true;
+
         auto table_it = tables.begin();
         for (size_t t = 0; t < thread; ++t, ++table_it)
         {
-            if (m + t * delta < n)
-                threads[t] = std::thread([&found_primes](size_t a, size_t b, bitset* table)
+            threads[t].table = &*table_it;
+            threads[t]._thread = std::thread([&run, &found_primes](ThreadArg* args)
             {
-                CalculateSegment<bitset>(a, b, found_primes, *table);
-            }, m + t * delta, std::min(m + (t + 1) * delta - 1, n), &*table_it);
-            else
-                break;
+                while (run)
+                {
+                    args->compute.wait();
+                    if (run)
+                    {
+                        CalculateSegment<bitset>(args->m, args->mm, found_primes, *(args->table));
+                        args->done.set();
+                    }
+                    else
+                        break;
+                }
+            }, &(threads[t]));
         }
-        table_it = tables.begin();
-        for (size_t t = 0; t < thread; ++t, m += delta)
+        size_t m = delta0 + 1;
+        while (m < n)
         {
-            if (threads[t].joinable())
+            for (size_t t = 0; t < thread; ++t, m += delta)
             {
-                threads[t].join();
-                printer(*table_it++, m);
+                threads[t].m = m;
+                threads[t].mm = std::min(m + delta - 1, n);
+                if (m < n)
+                {
+                    threads[t].compute.set();
+                }
+                else
+                    break;
             }
+            for (size_t t = 0; t < thread; ++t)
+                if (threads[t].m < n)
+                    threads[t].done.wait();
+                else
+                    break;
+            for (size_t t = 0; t < thread; ++t)
+                if (threads[t].m < n)
+                    printer(*threads[t].table, threads[t].m);
+                else
+                    break;
+        }
+        run = false;
+        for (size_t t = 0; t < thread; ++t)
+        {
+            threads[t].compute.set();
+            threads[t]._thread.join();
         }
     }
     if (output)
@@ -127,7 +177,8 @@ int main(int argc, const char* argv[])
     parser.AddArg<size_t>(wordsize, { "-w", "--word", "-s", "--storage" },
         "internal representation size in bits", "", {8,16,32,64});
     parser.AddArg(delta0, { "-d0", "--delta0" });
-    parser.AddArg(thread, { "-t", "--thread", "--threads" }, "The memory usga is ");
+    parser.AddArg(thread, { "-t", "--thread", "--threads" }, "The memory usage is roughly threads*delta/8 Bytes."
+        "\n\t\tsetting to 0 switches threading off.");
     
     parser.Do(argc, argv);
 
