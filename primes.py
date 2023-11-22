@@ -51,12 +51,12 @@ def get_args(argv=None) -> argparse.Namespace:
 
 
 def validate_arguments(args: argparse.Namespace) -> None:
-    n = 2**args.n
+    primes_upto_n = 2**args.n
     segment_size = 2**args.segment
 
-    number_of_jobs = n // segment_size
+    number_of_jobs = primes_upto_n // segment_size
 
-    if number_of_jobs % args.local_size != 0:
+    if number_of_jobs % args.local_size > 0:
         raise ValueError(
             f'local_size={args.local_size} must devide n/segment_size={number_of_jobs}'
         )
@@ -65,7 +65,7 @@ def validate_arguments(args: argparse.Namespace) -> None:
 def main(args) -> None:
     validate_arguments(args)
 
-    n = 2**args.nshift
+    primes_upto_n = 2**args.nshift
     segment_size = 2**args.segment_size_shift
 
     platform = pyopencl.get_platforms()[args.platform]
@@ -75,7 +75,8 @@ def main(args) -> None:
     # there are `n / segment_size` threads to compute
     # we do `batch_size` threads at one enqueue
     batch_size = min(
-        n // segment_size, 2 ** int(log2(pyopencl.kernel_work_group_info.WORK_GROUP_SIZE))
+        primes_upto_n // segment_size,
+        2 ** int(log2(pyopencl.kernel_work_group_info.WORK_GROUP_SIZE)),
     )
 
     # clear output file ahead
@@ -85,22 +86,22 @@ def main(args) -> None:
     with pyopencl.CommandQueue(
         pyopencl.Context([device], properties=[(pyopencl.context_properties.PLATFORM, platform)])
     ) as queue:
-        kernel = get_kernel_with_precomputed_primes(queue, n, segment_size)
+        kernel = get_kernel_with_precomputed_primes(queue, primes_upto_n, segment_size)
         result, result_device = prepare_result(queue, batch_size, segment_size)
         kernel.set_arg(0, result_device)
 
-        for offset in tqdm(range(0, n, batch_size * segment_size)):
+        for offset in tqdm(range(0, primes_upto_n, batch_size * segment_size)):
             kernel.set_arg(2, numpy.uint64(offset))
             pyopencl.enqueue_nd_range_kernel(queue, kernel, (batch_size,), (args.local_size,))
             flush_results(queue, result, result_device, args.output)
 
 
 def get_kernel_with_precomputed_primes(
-    queue: pyopencl.CommandQueue, n: int, segment_size: int
+    queue: pyopencl.CommandQueue, primes_upto_n: int, segment_size: int
 ) -> pyopencl.Kernel:
     context = queue.get_info(pyopencl.command_queue_info.CONTEXT)
 
-    small_primes = calculate_small_primes(n)
+    small_primes = calculate_small_primes(primes_upto_n)
 
     kernel = build_kernel(context, small_primes.size, segment_size)
 
@@ -152,23 +153,24 @@ def build_kernel(
     return segmented_sieve
 
 
-def calculate_small_primes(n: int) -> numpy.ndarray:
-    small_primes = (sieve(int(n**0.5)).nonzero()[0] + 1).astype('uint64')
+def calculate_small_primes(primes_upto_n: int) -> numpy.ndarray:
+    # pylint: disable=no-member
+    small_primes = (sieve(int(primes_upto_n**0.5)).nonzero()[0] + 1).astype('uint64')
     return small_primes
 
 
-def sieve(n: int) -> numpy.ndarray:
-    primes = numpy.ones(n, dtype=bool)
+def sieve(primes_upto_n: int) -> numpy.ndarray:
+    primes = numpy.ones(primes_upto_n, dtype=bool)
     i = 0
     primes[i] = False
-    while i < n:
+    while i < primes_upto_n:
         i += 1
         while not primes[i]:
             i += 1
-            if i == n:
+            if i == primes_upto_n:
                 return primes
-        p = i + 1
-        primes[p * p - 1 :: p] = False
+        prime = i + 1
+        primes[prime * prime - 1 :: prime] = False
     return primes
 
 
@@ -196,8 +198,8 @@ def flush_results(
     output_filename: str,
 ):
     pyopencl.enqueue_copy(queue, result.data, result_device)
-    with open(output_filename, 'ab') as f:
-        result.tofile(f)
+    with open(output_filename, 'ab') as output_file:
+        result.tofile(output_file)
     # reset for next batch
     pyopencl.enqueue_fill(queue, result_device, numpy.ubyte(ord('1')), result.size)
 
