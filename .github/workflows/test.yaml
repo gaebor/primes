@@ -1,6 +1,7 @@
 name: test
 on: push
-runs-on: ubuntu-latest
+defaults:
+  runs-on: ubuntu-latest
 jobs:
   check_code:
     steps:
