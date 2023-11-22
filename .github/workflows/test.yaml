@@ -41,4 +41,5 @@ jobs:
     - uses: actions/download-artifact@v3
       with:
         name: binaries
+    - name: Run
       run: bash benchmark.sh
