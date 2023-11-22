@@ -31,7 +31,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: microsoft/setup-msbuild@v1.3
-      run: |
+    - run: |
         cmake .
         msbuild /p:Configuration=Release primes.sln
   benchmark:
