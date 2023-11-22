@@ -25,7 +25,10 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: binaries
-        path: build-dir
+        path: |
+          build-dir
+          !*make*
+          !*Make*
   build_code_windows:
     runs-on: windows-latest
     steps:
