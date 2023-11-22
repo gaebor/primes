@@ -65,8 +65,8 @@ def validate_arguments(args: argparse.Namespace) -> None:
 def main(args) -> None:
     validate_arguments(args)
 
-    primes_upto_n = 2**args.nshift
-    segment_size = 2**args.segment_size_shift
+    primes_upto_n = 2**args.n
+    segment_size = 2**args.segment
 
     platform = pyopencl.get_platforms()[args.platform]
     device = platform.get_devices()[args.device]
