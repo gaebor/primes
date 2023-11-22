@@ -25,10 +25,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: binaries
-        path: |
-          naive
-          sieve
-          segmented
+        path: build-dir
   build_code_windows:
     runs-on: windows-latest
     steps:
