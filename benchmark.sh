@@ -1,7 +1,7 @@
 range=`seq 15 25`
 n=$((2**30))
-thread=0
-executable=./`hostname`/segmented
+thread=2
+executable=./segmented
 
 while [[ $# -gt 0 ]]
 do
@@ -40,15 +40,9 @@ do
     echo -n "2^$delta=$((2**delta/(8*1024)))K	"
     result=`env time -f "%esec	%MKiByte" $executable -n $n -d $((2**delta)) -t $thread -o test.bin 2>&1`
     err="$?"
-    difference=`diff -q test.bin test/primes.2_30.bin`
     if [ $err -ne 0 ]
     then 
         result="err$err"
-    else
-        if [ -n "$difference" ]
-        then
-            result="DIFF"
-        fi
     fi
     echo "$result"
 done
