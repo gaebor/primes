@@ -24,11 +24,11 @@ jobs:
     - name: Upload files
       uses: actions/upload-artifact@v3
       with:
-        name: binaries
+        name: binaries_linux
         path: |
           build-dir
-          !*make*
-          !*Make*
+          !build-dir/*make*
+          !build-dir/*Make*
   build_code_windows:
     runs-on: windows-latest
     steps:
@@ -38,6 +38,11 @@ jobs:
       run: |
         cmake .
         msbuild /p:Configuration=Release primes.sln
+    - name: Upload files
+      uses: actions/upload-artifact@v3
+      with:
+        name: binaries_windows
+        path: primes/Release/*.exe
   benchmark:
     needs: build_code_ubuntu
     runs-on: ubuntu-latest
@@ -45,6 +50,6 @@ jobs:
     - uses: actions/checkout@v3
     - uses: actions/download-artifact@v3
       with:
-        name: binaries
+        name: binaries_linux
     - name: Run
       run: bash benchmark.sh
