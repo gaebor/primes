@@ -101,7 +101,7 @@ def get_kernel_with_precomputed_primes(
 ) -> pyopencl.Kernel:
     context = queue.get_info(pyopencl.command_queue_info.CONTEXT)
 
-    small_primes = calculate_small_primes(primes_upto_n)
+    small_primes = sieve(int(primes_upto_n**0.5))
 
     kernel = build_kernel(context, small_primes.size, segment_size)
 
@@ -153,24 +153,14 @@ def build_kernel(
     return segmented_sieve
 
 
-def calculate_small_primes(primes_upto_n: int) -> numpy.ndarray:
-    # pylint: disable=no-member
-    small_primes = (sieve(int(primes_upto_n**0.5)).nonzero()[0] + 1).astype('uint64')
-    return small_primes
-
-
 def sieve(primes_upto_n: int) -> numpy.ndarray:
-    primes = numpy.ones(primes_upto_n, dtype=bool)
-    i = 0
-    primes[i] = False
-    while i < primes_upto_n:
-        i += 1
-        while not primes[i]:
-            i += 1
-            if i == primes_upto_n:
-                return primes
-        prime = i + 1
-        primes[prime * prime - 1 :: prime] = False
+    """https://stackoverflow.com/a/49936915/3583290"""
+    flags = numpy.ones(primes_upto_n, dtype=bool)
+    flags[0] = False
+    for i in range(2, int(primes_upto_n**0.5) + 1):
+        if flags[i - 1]:
+            flags[i * i - 1 :: i] = False
+    primes = (numpy.flatnonzero(flags) + 1).astype('uint64')
     return primes
 
 
