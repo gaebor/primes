@@ -38,12 +38,11 @@ jobs:
       run: |
         cmake .
         msbuild /p:Configuration=Release primes.sln
-        dir
     - name: Upload files
       uses: actions/upload-artifact@v3
       with:
         name: binaries_windows
-        path: primes/Release/*.exe
+        path: Release/*.exe
   benchmark:
     needs: build_code_ubuntu
     runs-on: ubuntu-latest
