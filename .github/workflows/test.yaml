@@ -12,20 +12,20 @@ jobs:
       run: pylint --enable-all-extensions --fail-under 10 primes.py
   build_code_ubuntu:
     runs-on: ubuntu-latest
-      steps:
-      - uses: actions/checkout@v4
-      - name: Build
-        run: |
-          cmake .
-          make .
-      - name: Upload files
-        uses: actions/upload-artifact@v3
-        with:
-          name: binaries
-          path: |
-            naive
-            sieve
-            segmented
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build
+      run: |
+        cmake .
+        make .
+    - name: Upload files
+      uses: actions/upload-artifact@v3
+      with:
+        name: binaries
+        path: |
+          naive
+          sieve
+          segmented
   build_code_windows:
     runs-on: windows-latest
     steps:
