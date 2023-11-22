@@ -38,8 +38,7 @@ jobs:
       run: |
         cmake .
         msbuild /p:Configuration=Release primes.sln
-        dir primes
-        dir primes/Release
+        dir
     - name: Upload files
       uses: actions/upload-artifact@v3
       with:
