@@ -30,7 +30,7 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v4
-      uses: microsoft/setup-msbuild@v1.3
+    - uses: microsoft/setup-msbuild@v1.3
       run: |
         cmake .
         msbuild /p:Configuration=Release primes.sln
