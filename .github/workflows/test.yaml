@@ -57,7 +57,7 @@ jobs:
         bash benchmark.sh
   test_win:
     needs: build_code_windows
-    runs-on: [self-hosted, linux, x64, MANGORLO]
+    runs-on: [self-hosted, Windows, X64, MANGORLO]
     steps:
     - uses: actions/checkout@v3
     - uses: actions/download-artifact@v3
