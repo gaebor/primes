@@ -29,6 +29,7 @@ jobs:
           build-dir
           !build-dir/*make*
           !build-dir/*Make*
+          primes.py
   build_code_windows:
     runs-on: windows-latest
     steps:
@@ -42,12 +43,13 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: binaries_windows
-        path: Release/*.exe
+        path: |
+          Release/*.exe
+          primes.py
   benchmark:
     needs: build_code_ubuntu
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
     - uses: actions/download-artifact@v3
       with:
         name: binaries_linux  
@@ -59,10 +61,9 @@ jobs:
     needs: build_code_windows
     runs-on: MANGORLO
     steps:
-    - uses: actions/checkout@v3
     - uses: actions/download-artifact@v3
       with:
         name: binaries_windows
     - name: Run
       run: |
-        segmented.exe -h
+        python primes.py -h
