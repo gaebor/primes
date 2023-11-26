@@ -66,4 +66,9 @@ jobs:
         name: binaries_windows
     - name: Run
       run: |
-        python primes.py -h
+        segmented.exe
+  test_win_runner:
+    runs-on: MANGORLO
+    steps:
+    - name: Run
+      run: help
