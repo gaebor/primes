@@ -64,6 +64,7 @@ jobs:
       with:
         name: binaries_windows
     - name: Run
+      shell: cmd
       run: |
         where segmented.exe
         segmented.exe
