@@ -44,7 +44,6 @@ jobs:
         name: binaries_windows
         path: |
           Release/*.exe
-          primes.py
   benchmark:
     needs: build_code_ubuntu
     runs-on: ubuntu-latest
@@ -67,8 +66,3 @@ jobs:
     - name: Run
       run: |
         segmented.exe
-  test_win_runner:
-    runs-on: MANGORLO
-    steps:
-    - name: Run
-      run: help
