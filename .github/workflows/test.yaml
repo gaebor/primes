@@ -29,7 +29,6 @@ jobs:
           build-dir
           !build-dir/*make*
           !build-dir/*Make*
-          primes.py
   build_code_windows:
     runs-on: windows-latest
     steps:
@@ -50,6 +49,7 @@ jobs:
     needs: build_code_ubuntu
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v4
     - uses: actions/download-artifact@v3
       with:
         name: binaries_linux  
