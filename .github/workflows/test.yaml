@@ -66,4 +66,4 @@ jobs:
     - name: Run
       run: |
         dir
-        ./segmented.exe
+        .\segmented.exe
