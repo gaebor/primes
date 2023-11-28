@@ -64,6 +64,6 @@ jobs:
       with:
         name: binaries_windows
     - name: Run
+      shell: bash
       run: |
-        dir
-        .\segmented.exe
+        segmented.exe -h
