@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.1)
 project (primes)
-
+cmake_policy(SET CMP0091 NEW)
 set (CMAKE_CXX_STANDARD 11)
 
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}" )
@@ -13,7 +13,8 @@ if(UNIX)
     add_compile_options("-march=native" "-Wall" "-pthread")
     target_link_libraries(segmented pthread)
 elseif(WIN32)
-    add_compile_options("/Ot" "/W4" "/MT")
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    add_compile_options("/Ot" "/W4")
     target_link_libraries(sieve ws2_32)
     target_link_libraries(segmented ws2_32)
 endif()
