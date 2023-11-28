@@ -31,11 +31,11 @@ jobs:
           !build-dir/*Make*
   build_code_windows:
     runs-on: windows-latest
+    shell: cmd
     steps:
     - uses: actions/checkout@v4
     - uses: microsoft/setup-msbuild@v1.3
     - name: Build
-      shell: cmd
       run: |
         cl.exe /W4 /O2 /Ob2 /MT /D_CRT_SECURE_NO_DEPRECATE /DNDEBUG /DNODEBUG /DWIN32 /EHsc /TP segmented.cpp /I. /link /ws2_32.lib /shell32.lib /OUT:segmented.exe
     - name: Upload files
