@@ -36,14 +36,13 @@ jobs:
     - uses: microsoft/setup-msbuild@v1.3
     - name: Build
       run: |
-        cmake .
-        msbuild /p:Configuration=Release primes.sln
+        cl /W4 /O2 /Ob2 /MT /DNDEBUG /EHsc /TP segmented.cpp /I. /link /ws2_32.lib /shell32.lib /OUT:segmented.exe
     - name: Upload files
       uses: actions/upload-artifact@v3
       with:
         name: binaries_windows
         path: |
-          Release/*.exe
+          *.exe
   benchmark:
     needs: build_code_ubuntu
     runs-on: ubuntu-latest
