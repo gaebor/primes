@@ -60,10 +60,12 @@ jobs:
     needs: build_code_windows
     runs-on: MANGORLO
     steps:
+    - uses: actions/checkout@v4
     - uses: actions/download-artifact@v3
       with:
         name: binaries_windows
     - name: Run
       shell: cmd
       run: |
-        segmented.exe
+        python primes.py -h
+        segmented.exe -h
