@@ -36,7 +36,7 @@ jobs:
     - uses: microsoft/setup-msbuild@v1.3
     - name: Build
       run: |
-        cmake --clean-first .
+        cmake .
         msbuild /p:Configuration=Release primes.sln
     - name: Upload files
       uses: actions/upload-artifact@v3
