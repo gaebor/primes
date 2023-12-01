@@ -33,12 +33,10 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: microsoft/setup-msbuild@v1.3
     - name: Build
       shell: cmd
       run: |
-        where msbuild
-        where cl
+        "C:\Program Files(x86)\Microsoft Visual Studio\Installer\vswhere"
         cl.exe /W4 /O2 /Ob2 /MT /D_CRT_SECURE_NO_DEPRECATE /DNDEBUG /DNODEBUG /DWIN32 /EHsc /TP segmented.cpp /I. /link /ws2_32.lib /shell32.lib /OUT:segmented.exe
     - name: Upload files
       uses: actions/upload-artifact@v3
