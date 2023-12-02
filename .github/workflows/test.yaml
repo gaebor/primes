@@ -67,6 +67,8 @@ jobs:
     - uses: actions/download-artifact@v3
       with:
         name: binaries_windows
+    - name: Prerequisites
+      run: python -m pip install pyopencl tqdm
     - name: Run
       shell: cmd
       run: |
