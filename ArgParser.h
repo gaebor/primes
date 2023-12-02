@@ -164,8 +164,11 @@ namespace arg
     public:
         Parser(const std::string& info,
                 const std::initializer_list<const char*>& helps = { "-h", "--help" })
-            :   arguments(), _options(), program_name(),
-                header(info), help_options(helps.begin(), helps.end())
+            :   arguments(),
+                help_options(helps.begin(), helps.end()),
+                _options(),
+                program_name(),
+                header(info)
         {
         }
         ~Parser() {}
