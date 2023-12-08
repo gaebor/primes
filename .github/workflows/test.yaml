@@ -53,7 +53,7 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build Image
       run: |
-        docker build -t run_environment_win_x64 -f run_environment_win_x64.dockerfile
+        docker build -t run_environment_win_x64 -f run_environment_win_x64.dockerfile .
     - name: Push to Docker
       run: |
         echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
