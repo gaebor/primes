@@ -47,6 +47,18 @@ jobs:
           build-dir
           !build-dir/*make*
           !build-dir/*Make*
+  build_windows_docker:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build Image
+      run: |
+        docker build -t run_environment_win_x64 -f run_environment_win_x64.dockerfile
+    - name: Push to Docker
+      run: |
+        echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+        docker tag run_environment_win_x64 gaebor/primes-github-runners:run_environment_win_x64
+        docker push gaebor/primes-github-runners:run_environment_win_x64
   build_code_windows:
     runs-on: windows-latest
     steps:
