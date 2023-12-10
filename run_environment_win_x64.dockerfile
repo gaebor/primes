@@ -1,4 +1,4 @@
-FROM self-hosted-runner
+FROM mcr.microsoft.com/windows:ltsc2019
 
 ADD https://registrationcenter-download.intel.com/akdlm/IRC_NAS/faf10bb4-a1b3-46cf-ae0b-986b419e1b1c-opencl/w_opencl_runtime_p_2023.2.0.49500.exe intel-opencl-installer.exe
 ADD https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe python-installer.exe
