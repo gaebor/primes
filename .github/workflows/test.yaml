@@ -76,7 +76,7 @@ jobs:
       run: python3 -m pip install pyopencl[pocl] tqdm
     - name: Run
       run: |
-        python3 primes.py -h
+        python3 pyopencl/primes.py -h
         chmod u+x ./*
         bash benchmark.sh
   # benchmark_raspberry_pi:
