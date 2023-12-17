@@ -109,3 +109,13 @@ jobs:
   #     run: |
   #       python primes.py -h
   #       segmented.exe -h
+  test_macos:
+    runs-on: gaeborsMBP
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run
+      run: |
+        brew install -y python
+        python -m ensurepip --upgrade
+        python -m pip install pyopencl[pocl] tqdm
+        python pyopencl/primes.ph -h
