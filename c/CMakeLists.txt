@@ -1,3 +1,4 @@
+cmake_minimum_required (VERSION 3.11)
 project (naive)
 
 set(CMAKE_C_FLAGS "-std=c99")
