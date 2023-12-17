@@ -77,6 +77,7 @@ jobs:
     - name: Run
       run: |
         python3 pyopencl/primes.py -h
+        ls -lha
         chmod u+x ./*
         bash benchmark.sh
   # benchmark_raspberry_pi:
