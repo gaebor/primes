@@ -78,7 +78,6 @@ jobs:
       run: |
         python3 pyopencl/primes.py -h
         chmod u+x ./*
-        ls -lha
         bash benchmark.sh
   # benchmark_raspberry_pi:
   #   needs: build_code_raspberry_pi
