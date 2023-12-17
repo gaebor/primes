@@ -115,7 +115,7 @@ jobs:
     - uses: actions/checkout@v4
     - name: Run
       run: |
-        brew install -y python
+        brew install python
         python -m ensurepip --upgrade
         python -m pip install pyopencl[pocl] tqdm
         python pyopencl/primes.ph -h
