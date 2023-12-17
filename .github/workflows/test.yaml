@@ -12,7 +12,7 @@ jobs:
     - name: Lint
       run: pylint --enable-all-extensions --fail-under 10 --disable=C0114,C0115,C0116,E0401 primes.py
   build_code_ubuntu:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - name: Build
@@ -29,36 +29,36 @@ jobs:
           build-dir
           !build-dir/*make*
           !build-dir/*Make*
-  build_code_raspberry_pi:
-    runs-on: guineapi
-    steps:
-    - uses: actions/checkout@v4
-    - name: Build
-      run: |
-        mkdir build-dir
-        cd build-dir
-        cmake ..
-        make
-    - name: Upload files
-      uses: actions/upload-artifact@v3
-      with:
-        name: binaries_arm
-        path: |
-          build-dir
-          !build-dir/*make*
-          !build-dir/*Make*
-  build_windows_docker:
-    runs-on: windows-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Build Image
-      run: |
-        docker build -t run_environment_win_x64 -f run_environment_win_x64.dockerfile .
-    - name: Push to Docker
-      run: |
-        echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-        docker tag run_environment_win_x64 gaebor/primes-github-runners:run_environment_win_x64
-        docker push gaebor/primes-github-runners:run_environment_win_x64
+  # build_code_raspberry_pi:
+  #   runs-on: guineapi
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #   - name: Build
+  #     run: |
+  #       mkdir build-dir
+  #       cd build-dir
+  #       cmake ..
+  #       make
+  #   - name: Upload files
+  #     uses: actions/upload-artifact@v3
+  #     with:
+  #       name: binaries_arm
+  #       path: |
+  #         build-dir
+  #         !build-dir/*make*
+  #         !build-dir/*Make*
+  # build_windows_docker:
+  #   runs-on: windows-latest
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #   - name: Build Image
+  #     run: |
+  #       docker build -t run_environment_win_x64 -f run_environment_win_x64.dockerfile .
+  #   - name: Push to Docker
+  #     run: |
+  #       echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+  #       docker tag run_environment_win_x64 gaebor/primes-github-runners:run_environment_win_x64
+  #       docker push gaebor/primes-github-runners:run_environment_win_x64
   build_code_windows:
     runs-on: windows-latest
     steps:
@@ -76,7 +76,7 @@ jobs:
           Release/*.exe
   benchmark:
     needs: build_code_ubuntu
-    runs-on: ubuntu-latest
+    runs-on: furiosa
     steps:
     - uses: actions/checkout@v4
     - uses: actions/download-artifact@v3
@@ -89,33 +89,33 @@ jobs:
         python primes.py -h
         chmod u+x ./*
         bash benchmark.sh
-  benchmark_raspberry_pi:
-    needs: build_code_raspberry_pi
-    runs-on: guineapi
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/download-artifact@v3
-      with:
-        name: binaries_arm
-    - name: Prerequisites
-      run: python -m pip install pyopencl[pocl] tqdm
-    - name: Run
-      run: |
-        python primes.py -h
-        chmod u+x ./*
-        bash benchmark.sh
-  test_win:
-    needs: build_code_windows
-    runs-on: MANGORLO
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/download-artifact@v3
-      with:
-        name: binaries_windows
-    - name: Prerequisites
-      run: python -m pip install pyopencl tqdm
-    - name: Run
-      shell: cmd
-      run: |
-        python primes.py -h
-        segmented.exe -h
+  # benchmark_raspberry_pi:
+  #   needs: build_code_raspberry_pi
+  #   runs-on: guineapi
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #   - uses: actions/download-artifact@v3
+  #     with:
+  #       name: binaries_arm
+  #   - name: Prerequisites
+  #     run: python -m pip install pyopencl[pocl] tqdm
+  #   - name: Run
+  #     run: |
+  #       python primes.py -h
+  #       chmod u+x ./*
+  #       bash benchmark.sh
+  # test_win:
+  #   needs: build_code_windows
+  #   runs-on: MANGORLO
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #   - uses: actions/download-artifact@v3
+  #     with:
+  #       name: binaries_windows
+  #   - name: Prerequisites
+  #     run: python -m pip install pyopencl tqdm
+  #   - name: Run
+  #     shell: cmd
+  #     run: |
+  #       python primes.py -h
+  #       segmented.exe -h
