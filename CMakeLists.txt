@@ -5,7 +5,7 @@ set (CMAKE_CXX_STANDARD 11)
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}" )
 
 if(UNIX)
-    add_compile_options("-march=native" "-Wall" "-pthread")
+    add_compile_options(-O2 -Wall -pthread)
 elseif(WIN32)
     add_compile_options(/Ot /W4 /MT)
 endif()
