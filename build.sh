@@ -1,7 +1,8 @@
 top_level_dir=`pwd`
 
-ls -d -1 */ | while read directory
+ls -1 */build.sh | while read build_script
 do
-    cd "$top_level_dir/$directory"
-    bash build.sh
+    cd "`dirname "$top_level_dir/$build_script"`"
+    pwd
+    bash ./build.sh
 done
