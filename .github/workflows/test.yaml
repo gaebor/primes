@@ -6,7 +6,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build
-      run: build.sh
+      run: bash build.sh
     - name: Upload files
       uses: actions/upload-artifact@v3
       with:
@@ -20,7 +20,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build
-      run: build.sh
+      run: bash build.sh
     - name: Upload files
       uses: actions/upload-artifact@v3
       with:
