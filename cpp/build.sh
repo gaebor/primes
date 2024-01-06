@@ -1,4 +1,4 @@
-sudo apt-get install -y make cmake gcc
+sudo apt-get install -y make cmake g++
 
 cmake .
 make
