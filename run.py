@@ -17,7 +17,6 @@ for name, command in commands.items():
         result = 'TIMEOUT'
     if subprocess_result.returncode == 0:
         result = 'FAILED'
-    elif result.r
     elif subprocess_result.stdout != primes_up_to_1k:
         raise ValueError('incorrect!')
     with open('results.tsv', 'at') as f:

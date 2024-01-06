@@ -1,5 +1,7 @@
 top_level_dir=`pwd`
 
+apt-get install -y python3
+
 ls -d -1 */ | while read directory
 do
     cd "$top_level_dir/$directory"
