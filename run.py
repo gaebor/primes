@@ -6,18 +6,31 @@ import time
 
 primes_up_to_1k = b'0110101000101000101000100000101000001000101000100000100000101000001000101000001000100000100000001000101000101000100000000000001000100000101000000000101000001000001000100000100000101000000000101000101000000000001000000000001000101000100000101000000000100000100000100000101000001000101000000000100000000000001000101000100000000000001000001000000000101000100000100000001000001000001000100000100000001000100000001000000000101000000000101000001000100000100000001000101000100000000000100000001000100000001000100000100000000000101000000000000000001000001000000000100000100000101000001000000000100000100000101000001000001000101000000000001000000000101000100000100000101000000000001000100000100000001000000000100000001000000000100000001000001000001000100000001000001000100000001000100000000000001000000000100000000000101000000000101000101000000000100000000000001000101000100000000000001000101000100000000000000000001000100000001000000000100000001000100000100000100000000000001000100000100000100000001000001000000000001000100000101000'
 
-with open('run_commands.json', 'rt') as f:
+with open('run.json', 'rt') as f:
     commands = json.load(f)
 
 for name, command in commands.items():
     # test
     try:
-        subprocess_result = subprocess.run(command, timeout=60, stdout=subprocess.PIPE)
+        subprocess_result = subprocess.run(command + ['1024'], timeout=60, stdout=subprocess.PIPE)
     except subprocess.TimeoutExpired:
         result = 'TIMEOUT'
-    if subprocess_result.returncode == 0:
-        result = 'FAILED'
-    elif subprocess_result.stdout != primes_up_to_1k:
-        raise ValueError('incorrect!')
+    else:
+        if subprocess_result.returncode != 0:
+            result = 'FAILED'
+        elif subprocess_result.stdout != primes_up_to_1k:
+            result = 'INCORRECT'
+        else:
+            start_time = time.time()
+            subprocess.run(command + [f'{1024**2}'])
+            result = f'{time.time() - start_time}'
     with open('results.tsv', 'at') as f:
-        print(platform.system(), platform.machine(), platform.processor(), name, file=f, sep='\t')
+        print(
+            platform.system(),
+            platform.machine(),
+            platform.processor(),
+            name,
+            result,
+            file=f,
+            sep='\t',
+        )
