@@ -1,1 +1,3 @@
-Get-ChildItem -Path .\*\build.cmd | Foreach-Object { echo $_.FullName }
+Get-ChildItem -Path .\*\build.ps1 | Foreach-Object { 
+    $_.FullName
+}
