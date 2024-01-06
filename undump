@@ -1,2 +1,0 @@
-#!/usr/bin/env bash
-xxd -b -c 1 $@ | cut -f2 -d" " | rev
