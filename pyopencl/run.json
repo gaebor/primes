@@ -1,0 +1,6 @@
+{
+    "pyopencl": [
+        "python3",
+        "primes.py"
+    ]
+}

@@ -1,0 +1,8 @@
+{
+    "cpp sieve": [
+        "sieve"
+    ],
+    "cpp egmented (threaded) sieve": [
+        "segmented"
+    ]
+}
