@@ -31,11 +31,11 @@ jobs:
           cpp/segmented
   build_code_windows:
     runs-on: windows-latest
-    shell: cmd
     steps:
     - uses: actions/checkout@v4
     - uses: microsoft/setup-msbuild@v1.3
     - name: Build
+      shell: cmd
       run: build.cmd
     - name: Upload files
       uses: actions/upload-artifact@v3
