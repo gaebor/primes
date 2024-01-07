@@ -4,5 +4,8 @@
     ],
     "cpp egmented (threaded) sieve": [
         "segmented"
+    ],
+    "naive c": [
+        "naive"
     ]
 }
