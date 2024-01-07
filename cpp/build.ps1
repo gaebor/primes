@@ -1,4 +1,4 @@
 cmake .
 make
 
-Copy-Item -Path ".\Release\*.exe" -Destination ".\"
+Copy-Item -Filter *.exe -Path ".\Release" -Destination ".\"
