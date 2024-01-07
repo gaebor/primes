@@ -1,6 +1,7 @@
 import argparse
 from json import dumps
 from math import log2
+import sys
 
 import numpy
 import pyopencl
@@ -30,7 +31,7 @@ def get_args(argv=None) -> argparse.Namespace:
         ),
     )
 
-    parser.add_argument('--n', '-n', default=30, type=int, help='calculate primes up to 2^n')
+    parser.add_argument(dest='n', type=int, help='calculate primes up to n')
     parser.add_argument('--platform', default=0, type=int, help='see epilog')
     parser.add_argument('--device', default=0, type=int, help='see epilog')
     parser.add_argument(
@@ -45,13 +46,12 @@ def get_args(argv=None) -> argparse.Namespace:
         type=int,
         help='this number of threads are grouped together on device',
     )
-    parser.add_argument('--output', default='output.txt', type=str)
     args = parser.parse_args(argv)
     return args
 
 
 def validate_arguments(args: argparse.Namespace) -> None:
-    primes_upto_n = 2**args.n
+    primes_upto_n = args.n
     segment_size = 2**args.segment
 
     number_of_jobs = primes_upto_n // segment_size
@@ -65,7 +65,7 @@ def validate_arguments(args: argparse.Namespace) -> None:
 def main(args) -> None:
     validate_arguments(args)
 
-    primes_upto_n = 2**args.n
+    primes_upto_n = args.n
     segment_size = 2**args.segment
 
     platform = pyopencl.get_platforms()[args.platform]
@@ -79,10 +79,6 @@ def main(args) -> None:
         2 ** int(log2(pyopencl.kernel_work_group_info.WORK_GROUP_SIZE)),
     )
 
-    # clear output file ahead
-    with open(args.output, 'wb'):
-        pass
-
     with pyopencl.CommandQueue(
         pyopencl.Context([device], properties=[(pyopencl.context_properties.PLATFORM, platform)])
     ) as queue:
@@ -93,7 +89,7 @@ def main(args) -> None:
         for offset in tqdm(range(0, primes_upto_n, batch_size * segment_size)):
             kernel.set_arg(2, numpy.uint64(offset))
             pyopencl.enqueue_nd_range_kernel(queue, kernel, (batch_size,), (args.local_size,))
-            flush_results(queue, result, result_device, args.output)
+            flush_results(queue, result, result_device)
 
 
 def get_kernel_with_precomputed_primes(
@@ -182,14 +178,10 @@ def prepare_result(queue: pyopencl.CommandQueue, batch_size: int, segment_size: 
 
 
 def flush_results(
-    queue: pyopencl.CommandQueue,
-    result: numpy.ndarray,
-    result_device: pyopencl.Buffer,
-    output_filename: str,
+    queue: pyopencl.CommandQueue, result: numpy.ndarray, result_device: pyopencl.Buffer
 ):
     pyopencl.enqueue_copy(queue, result.data, result_device)
-    with open(output_filename, 'ab') as output_file:
-        result.tofile(output_file)
+    result.tofile(sys.stdout.buffer)
     # reset for next batch
     pyopencl.enqueue_fill(queue, result_device, numpy.ubyte(ord('1')), result.size)
 
