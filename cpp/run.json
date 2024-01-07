@@ -1,11 +1,11 @@
 {
+    "c naive": [
+        "./naive"
+    ],
     "cpp sieve": [
-        "sieve"
+        "./sieve"
     ],
     "cpp egmented (threaded) sieve": [
-        "segmented"
-    ],
-    "naive c": [
-        "naive"
+        "./segmented"
     ]
 }
