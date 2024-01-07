@@ -1,4 +1,4 @@
 cmake .
-msbuild primes.sln -property:Configuration=Relese
+msbuild primes.sln /p:Configuration=Release
 
 Copy-Item -Filter *.exe -Path ".\Release" -Destination ".\"
